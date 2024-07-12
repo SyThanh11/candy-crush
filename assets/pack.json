@@ -1,0 +1,81 @@
+{
+  "preload": {
+    "files": [
+      {
+        "type": "image",
+        "key": "jellyYellow",
+        "url": "./assets/images/jellyYellow.png"
+      },
+      {
+        "type": "image",
+        "key": "jellyBlack",
+        "url": "./assets/images/jellyBlack.png"
+      },
+      {
+        "type": "image",
+        "key": "jellyPink",
+        "url": "./assets/images/jellyPink.png"
+      },
+      {
+        "type": "image",
+        "key": "jellyBlue",
+        "url": "./assets/images/jellyBlue.png"
+      },
+      {
+        "type": "image",
+        "key": "jellyRed",
+        "url": "./assets/images/jellyRed.png"
+      },
+      {
+        "type": "image",
+        "key": "jellyGreen",
+        "url": "./assets/images/jellyGreen.png"
+      },
+      {
+        "type": "image",
+        "key": "backgroundClick",
+        "url": "./assets/images/backgroundClick.png"
+      },
+      {
+        "type": "image",
+        "key": "background",
+        "url": "./assets/images/93079.jpg"
+      },
+      {
+        "type": "image",
+        "key": "mainBackground",
+        "url": "./assets/images/mainBackground.jpg"
+      },
+      {
+        "type": "image",
+        "key": "ground",
+        "url": "./assets/images/ground.png"
+      },
+      {
+        "type": "image",
+        "key": "bar_1",
+        "url": "./assets/images/bar_1.png"
+      },
+      {
+        "type": "image",
+        "key": "bar_2",
+        "url": "./assets/images/bar_2.png"
+      },
+      {
+        "type": "image",
+        "key": "f",
+        "url": "./assets/images/f.png"
+      },
+      {
+        "type": "image",
+        "key": "field",
+        "url": "./assets/images/field.png"
+      },
+      {
+        "type": "image",
+        "key": "leaf",
+        "url": "./assets/images/leaf3.png"
+      }
+    ]
+  }
+}
