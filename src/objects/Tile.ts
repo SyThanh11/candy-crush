@@ -3,12 +3,17 @@ import TweenHelper from '../helper/TweenHelper'
 import { ImageConstructor } from '../interfaces/image.interface'
 
 class Tile extends Phaser.GameObjects.Image {
+    private speed: number
     private matchCount = 1
     private glow: Phaser.FX.Glow | undefined
     private isHorizontal = true
+    private isVisited: boolean
 
     constructor(params: ImageConstructor) {
         super(params.scene, params.x, params.y, params.texture, params.frame)
+
+        this.speed = 0.4
+        this.isVisited = false
 
         this.setOrigin(0, 0)
         this.setInteractive()
@@ -25,12 +30,53 @@ class Tile extends Phaser.GameObjects.Image {
         return this.isHorizontal
     }
 
+    public setIsVisited(isVisited: boolean): void {
+        this.isVisited = isVisited
+    }
+    public getIsVisited(): boolean {
+        return this.isVisited
+    }
+    public setSpeed(value: number): void {
+        this.speed = value
+    }
+
     public setMatchCount(matchCount: number) {
-        this.matchCount = matchCount + 1
+        this.matchCount = matchCount
     }
 
     public getMatchCount(): number {
         return this.matchCount
+    }
+
+    public getTypeTile(): string {
+        return this.texture.key
+    }
+
+    public moveToTarget(
+        xCoordinate: number,
+        yCoordinate: number,
+        callback: Function | undefined = undefined,
+        ease = 'Linear'
+    ): Phaser.Tweens.Tween | undefined {
+        if (!this.scene) return undefined
+        let duration = Math.abs(yCoordinate * CONST.tileHeight - this.y) / this.speed
+        if (this.getBoardY() == yCoordinate) {
+            duration = Math.abs(xCoordinate * CONST.tileWidth - this.x) / this.speed
+        }
+        return this.scene.add.tween({
+            targets: this,
+            x: CONST.tileHeight * xCoordinate,
+            y: CONST.tileHeight * yCoordinate,
+            ease: ease,
+            duration: duration,
+            repeat: 0,
+            yoyo: false,
+            onComplete: () => {
+                if (callback) {
+                    callback()
+                }
+            },
+        })
     }
 
     public initAnimationExpode(): Phaser.GameObjects.Particles.ParticleEmitter {
@@ -99,6 +145,21 @@ class Tile extends Phaser.GameObjects.Image {
         this.preFX?.setPadding(32)
         this.glow = this.preFX?.addGlow()
         this.glow?.setActive(false)
+    }
+
+    public isColorBoom(): boolean {
+        return this.matchCount >= 5
+    }
+
+    public debugTile(): void {
+        console.log(
+            this.getBoardY(),
+            this.getBoardX(),
+            'isVisited',
+            this.isVisited,
+            'texture',
+            this.getTypeTile()
+        )
     }
 }
 

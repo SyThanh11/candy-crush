@@ -40,46 +40,23 @@ export class GameScene extends Phaser.Scene {
         this.mainUI = new MainUI(this, 0, 0, 1000)
         this.mainUI.setProgressBarValue(ScoreManager.getInstance().getProgressRatio())
 
-        const emitter = this.add.particles(100, 300, 'leaf', {
-            // x: {
-            //     onUpdate: (particle: any) => {
-            //         // console.log(particle)
-            //         // return particle.x
-            //     },
-            // },
-            lifespan: 2000,
-            angle: {
-                min: -90,
-                max: -30,
-            },
-            // gravityY: {
-            //     onEmit: () => {
-            //         return 0
-            //     }
-            // },
-            speed: 150,
-            scale: 0.2,
-            emitting: false,
-        })
+        // const emitter = this.add.particles(100, 300, 'leaf', {
+        //     lifespan: 2000,
+        //     angle: {
+        //         min: -90,
+        //         max: -30,
+        //     },
+        //     gravityY: 100,
+        //     speed: 200,
+        //     scale: 0.2,
+        //     particleClass
+        // })
 
-        emitter.on('particleEmit', (particle: any) => {
-            console.log('New particle emitted:', particle)
-        })
+        // emitter.update((particle: Phaser.GameObjects.Particles.Particle) => {
+        //     particle.x = 0
+        // })
 
-        // emitter.setGravityY(50); // Thiết lập trọng lực theo trục Y
-
-        // // Đăng ký sự kiện onUpdate để thêm lực cản không khí
-        // emitter.onUpdate((particle: Phaser.GameObjects.Particles.Particle) => {
-        //     // Giảm dần tốc độ của hạt để mô phỏng lực cản không khí
-        //     if (particle.velocity.y > 0) {
-        //         particle.velocity.y -= 5; // Điều chỉnh lực cản không khí ở đây
-        //     }
-        // });
-
-        // Khởi động bộ phát hạt
-        emitter.start()
-
-        emitter.explode(10)
+        // emitter.explode(1)
     }
 
     public addScoreAndUpdateMainUI(score: number) {
@@ -121,7 +98,7 @@ export class GameScene extends Phaser.Scene {
                 ScoreManager.getInstance().setTargetScore(targetScore)
                 this.mainUI.setTargetScore(targetScore)
                 this.isPlaying = true
-            }, 2000)
+            }, 5000)
         })
     }
 }

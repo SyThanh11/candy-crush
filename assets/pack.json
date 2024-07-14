@@ -75,6 +75,16 @@
         "type": "image",
         "key": "leaf",
         "url": "./assets/images/leaf3.png"
+      },
+      {
+        "type": "image",
+        "key": "selection-frame",
+        "url": "./assets/images/selection-frame.png"
+      },
+      {
+        "type":"image",
+        "key": "boom",
+        "url": "./assets/images/19.png"
       }
     ]
   }

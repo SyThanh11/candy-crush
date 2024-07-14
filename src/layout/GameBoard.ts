@@ -8,6 +8,7 @@ class GameBoard extends Phaser.GameObjects.Container {
     private canMove: boolean
     private canDrag: boolean
 
+    private matchManager: MatchManager
     private tileGrid: (Tile | undefined)[][]
     private timeSinceInteraction: number
     private timeSinceIdle: number
@@ -18,9 +19,13 @@ class GameBoard extends Phaser.GameObjects.Container {
     private shuffleTiles: ShuffleTiles
 
     private isPlaying = true
+    private originalPositions: { tile: Tile; x: number; y: number }[] = []
+    private idleTweens: Phaser.Tweens.Tween[] = []
 
     constructor(scene: Phaser.Scene, x: number, y: number) {
         super(scene, x, y)
+
+        this.matchManager = new MatchManager(this.tileGrid)
 
         this.timeSinceInteraction = 0
         this.timeSinceIdle = 0
@@ -55,6 +60,7 @@ class GameBoard extends Phaser.GameObjects.Container {
 
         this.shuffleTiles.playSuffle(this.scene, () => {
             let count = CONST.gridWidth * CONST.gridHeight
+            this.canMove = false
             for (let y = CONST.gridHeight - 1; y >= 0; y--) {
                 for (let x = 0; x < CONST.gridWidth; x++) {
                     const duration =
@@ -71,6 +77,7 @@ class GameBoard extends Phaser.GameObjects.Container {
                             if (count == 0) {
                                 this.resetTimeHintAndIdle()
                                 this.checkMatches()
+                                this.canMove = true
                             }
                         }
                     )
@@ -117,21 +124,56 @@ class GameBoard extends Phaser.GameObjects.Container {
     }
 
     private triggerIdle(): void {
-        for (let y = 0; y < CONST.gridHeight; y++) {
-            for (let x = 0; x < CONST.gridWidth; x++) {
-                const tile = this.tileGrid[y][x]
+        let index = 0
+
+        this.originalPositions = []
+        this.idleTweens.forEach((tween) => tween.stop())
+        this.idleTweens = []
+
+        for (let distance = 0; distance <= CONST.gridHeight + CONST.gridWidth - 2; distance++) {
+            for (
+                let yOffset = Math.min(distance, CONST.gridHeight - 1);
+                yOffset >= Math.max(0, distance - CONST.gridWidth + 1);
+                yOffset--
+            ) {
+                const xOffset = distance - yOffset
+                const tile = this.tileGrid[yOffset][xOffset]
                 if (tile) {
-                    this.scene.tweens.add({
+                    this.originalPositions.push({
+                        tile: tile,
+                        x: tile.x,
+                        y: tile.y,
+                    })
+
+                    const tween = this.scene.tweens.add({
                         targets: tile,
                         alpha: 0.5,
-                        duration: 1000,
+                        y: tile.y + 10,
+                        duration: 200,
                         ease: 'Linear',
                         yoyo: true,
-                        delay: x * 200,
+                        delay: index * 20,
                     })
+                    this.idleTweens.push(tween)
+                    index++
                 }
             }
         }
+    }
+
+    public resetIdle(): void {
+        this.idleTweens.forEach((tween) => tween.stop())
+
+        this.originalPositions.forEach(({ tile, x, y }) => {
+            this.scene.tweens.add({
+                targets: tile,
+                alpha: 1,
+                x: x,
+                y: y,
+                duration: 200,
+                ease: 'Linear',
+            })
+        })
     }
 
     private removeIdleAnimations() {
@@ -196,9 +238,26 @@ class GameBoard extends Phaser.GameObjects.Container {
     private highlightTile(x: number, y: number): void {
         const tile = this.tileGrid[y][x]
         if (tile) {
-            const image = this.scene.add.image(tile.x, tile.y, 'backgroundClick').setOrigin(0)
+            const image = this.scene.add.image(tile.x, tile.y, 'selection-frame').setOrigin(0)
             tile.setData('selectionImage', image)
             this.add(image)
+
+            const centerX = tile.x
+            const centerY = tile.y
+            const newX = centerX - (CONST.tileWidth * 0.2) / 2
+            const newY = centerY - (CONST.tileHeight * 0.2) / 2
+
+            this.scene.tweens.add({
+                targets: image,
+                x: newX,
+                y: newY,
+                scaleX: 1.2,
+                scaleY: 1.2,
+                duration: 200,
+                ease: 'Linear',
+                yoyo: true,
+                repeat: -1,
+            })
         }
     }
 
@@ -220,6 +279,10 @@ class GameBoard extends Phaser.GameObjects.Container {
                 if (tile) {
                     const image = tile.getData('selectionImage')
                     if (image) {
+                        if (image.scaleX !== 1 || image.scaleY !== 1) {
+                            this.scene.tweens.killTweensOf(image)
+                            image.setScale(1)
+                        }
                         image.destroy()
                         tile.setData('selectionImage', null)
                     }
@@ -235,6 +298,7 @@ class GameBoard extends Phaser.GameObjects.Container {
             this.resetTimeHintAndIdle()
             this.removeIdleAnimations()
             this.removeHint()
+            this.resetIdle()
             const y = tile.y / CONST.tileHeight
             const x = tile.x / CONST.tileWidth
 
@@ -366,10 +430,22 @@ class GameBoard extends Phaser.GameObjects.Container {
         )
 
         this.currentSelectionImage = this.scene.add
-            .image(tile.x, tile.y, 'backgroundClick')
+            .image(tile.x, tile.y, 'selection-frame')
             .setOrigin(0)
-
+        tile.setData('selectionImage', this.currentSelectionImage)
         this.add(this.currentSelectionImage)
+
+        this.scene.tweens.add({
+            targets: this.currentSelectionImage,
+            x: newX,
+            y: newY,
+            scaleX: 1.2,
+            scaleY: 1.2,
+            duration: 200,
+            ease: 'Linear',
+            yoyo: true,
+            repeat: -1,
+        })
     }
 
     /**
@@ -445,7 +521,7 @@ class GameBoard extends Phaser.GameObjects.Container {
         const matches = this.getMatches(this.tileGrid)
 
         if (matches.length > 0) {
-            await this.removeTileGroup(matches)
+            this.removeTileGroup(matches)
         } else {
             this.swapTiles()
             this.tileUp()
@@ -540,32 +616,33 @@ class GameBoard extends Phaser.GameObjects.Container {
     }
 
     private async removeTileGroup(matches: Tile[][]): Promise<void> {
-        const matchManager = new MatchManager(this.tileGrid)
-
-        for (let i = 0; i < matches.length; i++) {
-            const tempArr = matches[i]
-            for (let j = 0; j < tempArr.length; j++) {
-                const tile = tempArr[j]
-                matchManager.addTile(tile)
+        return new Promise<void>((resolve, reject) => {
+            if (!this.tileGrid) {
+                resolve()
+                return
             }
-        }
 
-        await matchManager.refactorMatch()
-
-        if (this.isPlaying) {
-            await new Promise<void>((resolve) => {
-                matchManager.matchAndRemoveTiles(this.tileGrid, () => {
-                    this.resetTimeHintAndIdle()
-                    this.resetTile().then(() => {
-                        this.tileUp().then(() => {
-                            this.checkMatches().then(() => {
-                                resolve()
-                            })
-                        })
-                    })
-                })
-            })
-        }
+            this.matchManager.clear()
+            this.matchManager.setTileGrid(this.tileGrid)
+            this.matchManager.findMatches(matches)
+            this.matchManager.refactorMatch()
+            this.matchManager.matchAndRemoveTiles(
+                this.tileGrid,
+                this.secondSelectedTile?.getBoardX()!,
+                this.secondSelectedTile?.getBoardY()!,
+                async () => {
+                    await this.resetTile()
+                    await this.tileUp()
+                    await this.checkMatches()
+                    resolve()
+                },
+                () => {
+                    console.log('Something went wrong')
+                    this.checkMatches()
+                    resolve()
+                }
+            )
+        })
     }
 
     private getTilePos(tileGrid: (Tile | undefined)[][], tile: Tile): any {
