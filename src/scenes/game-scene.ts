@@ -73,8 +73,8 @@ export class GameScene extends Phaser.Scene {
 
             this.isPlaying = false
             this.gameBoard.setIsPlaying(false)
-            this.confettiParticleLeftManager.burst(60, 350)
-            this.confettiParticleRightManager.burst(480, 350)
+            this.confettiParticleLeftManager.burst(60, 300)
+            this.confettiParticleRightManager.burst(480, 300)
 
             resolve()
         }).then(() => {

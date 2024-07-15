@@ -302,8 +302,16 @@ class GameBoard extends Phaser.GameObjects.Container {
                 this.isResetIdle = false
                 this.resetIdle()
             }
-            const y = tile.y / CONST.tileHeight
-            const x = tile.x / CONST.tileWidth
+
+            if (this.firstSelectedTile) {
+                this.scene.tweens.killTweensOf(this.firstSelectedTile)
+            }
+            if (this.secondSelectedTile) {
+                this.scene.tweens.killTweensOf(this.secondSelectedTile)
+            }
+
+            const y = Math.floor(tile.y / CONST.tileHeight)
+            const x = Math.floor(tile.x / CONST.tileWidth)
 
             if (y >= CONST.gridHeight || x >= CONST.gridWidth || y < 0 || x < 0) return
             const pickeTile = this.tileGrid[y][x]
@@ -471,6 +479,9 @@ class GameBoard extends Phaser.GameObjects.Container {
 
     private swapTiles(): void {
         if (this.firstSelectedTile && this.secondSelectedTile) {
+            this.scene.tweens.killTweensOf(this.firstSelectedTile)
+            this.scene.tweens.killTweensOf(this.secondSelectedTile)
+
             const firstTilePosition = {
                 x: this.firstSelectedTile.x,
                 y: this.firstSelectedTile.y,
