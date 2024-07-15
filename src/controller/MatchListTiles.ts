@@ -25,13 +25,10 @@ class MatchListTiles {
     public destroyAllTiles(tileGrid: (Tile | undefined)[][]): void {
         for (let i = this.matchTiles.length - 1; i >= 0; i--) {
             const tile = this.matchTiles[i]
-
             if (tile.getMatchCount() == 4) {
                 this.handleBoomMatchFour(tile, tileGrid)
                 return
             } else if (tile.getMatchCount() >= 5) {
-                console.log('Hi')
-
                 this.handleBoomMatchFive(tileGrid)
                 return
             } else {
@@ -47,7 +44,6 @@ class MatchListTiles {
             for (let i = 0; i < CONST.gridWidth; i++) {
                 const tempTile = tileGrid[tile.getBoardY()][i]
                 tileGrid[tile.getBoardY()][i] = undefined
-
                 tempTile?.destroyTile()
                 ScoreManager.getInstance().eventEmitter.emit('addScore', CONST.addScore)
             }
@@ -68,6 +64,8 @@ class MatchListTiles {
         tileGrid: (Tile | undefined)[][],
         centerTile: Tile | undefined = undefined
     ): void {
+        console.log('Check 2')
+
         const tile =
             centerTile == undefined ? this.findCenter(tileGrid, this.matchTiles) : centerTile
         const left = tile.getBoardX() - 2 >= 0 ? tile.getBoardX() - 2 : 0
@@ -177,6 +175,9 @@ class MatchListTiles {
         if (centerTile.isColorBoom()) {
             centerTile.setTexture('boom')
         }
+
+        ScoreManager.getInstance().incrementScore((tempTileList.length + 1) * CONST.addScore)
+
         centerTile.setIsVisited(false)
         centerTile.toggleGlow(true)
 

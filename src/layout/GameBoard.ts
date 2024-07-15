@@ -2,6 +2,7 @@ import CONST from '../const/const'
 import MatchManager from '../controller/MatchManager'
 import ShuffleTiles from '../helper/ShuffleTiles'
 import TweenHelper from '../helper/TweenHelper'
+import ScoreManager from '../objects/ScoreManager'
 import Tile from '../objects/Tile'
 
 class GameBoard extends Phaser.GameObjects.Container {
@@ -19,6 +20,7 @@ class GameBoard extends Phaser.GameObjects.Container {
     private shuffleTiles: ShuffleTiles
 
     private isPlaying = true
+    private isResetIdle = false
     private originalPositions: { tile: Tile; x: number; y: number }[] = []
     private idleTweens: Phaser.Tweens.Tween[] = []
 
@@ -124,12 +126,11 @@ class GameBoard extends Phaser.GameObjects.Container {
     }
 
     private triggerIdle(): void {
+        this.isResetIdle = true
         let index = 0
-
         this.originalPositions = []
         this.idleTweens.forEach((tween) => tween.stop())
         this.idleTweens = []
-
         for (let distance = 0; distance <= CONST.gridHeight + CONST.gridWidth - 2; distance++) {
             for (
                 let yOffset = Math.min(distance, CONST.gridHeight - 1);
@@ -144,7 +145,6 @@ class GameBoard extends Phaser.GameObjects.Container {
                         x: tile.x,
                         y: tile.y,
                     })
-
                     const tween = this.scene.tweens.add({
                         targets: tile,
                         alpha: 0.5,
@@ -170,7 +170,7 @@ class GameBoard extends Phaser.GameObjects.Container {
                 alpha: 1,
                 x: x,
                 y: y,
-                duration: 200,
+                duration: 0,
                 ease: 'Linear',
             })
         })
@@ -298,7 +298,10 @@ class GameBoard extends Phaser.GameObjects.Container {
             this.resetTimeHintAndIdle()
             this.removeIdleAnimations()
             this.removeHint()
-            this.resetIdle()
+            if (this.isResetIdle) {
+                this.isResetIdle = false
+                this.resetIdle()
+            }
             const y = tile.y / CONST.tileHeight
             const x = tile.x / CONST.tileWidth
 
@@ -423,7 +426,7 @@ class GameBoard extends Phaser.GameObjects.Container {
             newY,
             1.2,
             1.2,
-            200,
+            0,
             'Linear',
             true,
             callBack
@@ -502,7 +505,13 @@ class GameBoard extends Phaser.GameObjects.Container {
                 CONST.swapSpeed,
                 'Linear',
                 () => {
-                    this.checkMatches()
+                    if (this.firstSelectedTile?.isColorBoom()) {
+                        this.explodeSameTile(this.firstSelectedTile, this.secondSelectedTile!)
+                    } else if (this.secondSelectedTile?.isColorBoom()) {
+                        this.explodeSameTile(this.secondSelectedTile, this.firstSelectedTile!)
+                    } else {
+                        this.checkMatches()
+                    }
                 }
             )
 
@@ -515,6 +524,51 @@ class GameBoard extends Phaser.GameObjects.Container {
                     secondTilePosition.x / CONST.tileWidth
                 ]
         }
+    }
+
+    private async explodeSameTile(tileOne: Tile, tileTwo: Tile): Promise<void> {
+        for (let y = 0; y < this.tileGrid.length; y++) {
+            for (let x = 0; x < this.tileGrid[y].length; x++) {
+                if (this.tileGrid[y][x]?.hasSameTypeTile(tileTwo)) {
+                    if (this.tileGrid[y][x]?.getMatchCount() == 4) {
+                        this.handleBoomMatchFour(this.tileGrid[y][x]!, this.tileGrid)
+                    } else {
+                        const tile = this.tileGrid[y][x]
+                        this.tileGrid[y][x] = undefined
+                        tile?.destroyTile()
+                    }
+                }
+            }
+        }
+
+        this.tileGrid[tileOne.getBoardY()][tileOne.getBoardX()] = undefined
+        tileOne.destroyTile()
+
+        await this.resetTile()
+        await this.tileUp()
+        await this.checkMatches()
+    }
+
+    public handleBoomMatchFour(tile: Tile, tileGrid: (Tile | undefined)[][]): void {
+        if (tile.getIsHorizontal()) {
+            for (let i = 0; i < CONST.gridWidth; i++) {
+                const tempTile = tileGrid[tile.getBoardY()][i]
+                tileGrid[tile.getBoardY()][i] = undefined
+
+                tempTile?.destroyTile()
+                ScoreManager.getInstance().eventEmitter.emit('addScore', CONST.addScore)
+            }
+        } else {
+            for (let i = 0; i < CONST.gridHeight; i++) {
+                const tempTile = tileGrid[i][tile.getBoardX()]
+                tileGrid[i][tile.getBoardX()] = undefined
+                tempTile?.destroyTile()
+                ScoreManager.getInstance().eventEmitter.emit('addScore', CONST.addScore)
+            }
+        }
+
+        tileGrid[tile.getBoardY()][tile.getBoardX()] = undefined
+        tile.destroyTile()
     }
 
     private async checkMatches(): Promise<void> {
@@ -600,7 +654,7 @@ class GameBoard extends Phaser.GameObjects.Container {
                 x * CONST.tileWidth,
                 y * CONST.tileHeight,
                 duration,
-                'easeInSine',
+                'Bounce.easeOut',
                 () => {
                     resolve()
                 }
@@ -631,9 +685,11 @@ class GameBoard extends Phaser.GameObjects.Container {
                 this.secondSelectedTile?.getBoardX()!,
                 this.secondSelectedTile?.getBoardY()!,
                 async () => {
-                    await this.resetTile()
-                    await this.tileUp()
-                    await this.checkMatches()
+                    if (this.isPlaying) {
+                        await this.resetTile()
+                        await this.tileUp()
+                        await this.checkMatches()
+                    }
                     resolve()
                 },
                 () => {
@@ -643,24 +699,6 @@ class GameBoard extends Phaser.GameObjects.Container {
                 }
             )
         })
-    }
-
-    private getTilePos(tileGrid: (Tile | undefined)[][], tile: Tile): any {
-        const pos = { x: -1, y: -1 }
-
-        //Find the position of a specific tile in the grid
-        for (let y = 0; y < tileGrid.length; y++) {
-            for (let x = 0; x < tileGrid[y].length; x++) {
-                //There is a match at this position so return the grid coords
-                if (tile === tileGrid[y][x]) {
-                    pos.x = x
-                    pos.y = y
-                    break
-                }
-            }
-        }
-
-        return pos
     }
 
     private getMatches(tileGrid: (Tile | undefined)[][]): Tile[][] {
@@ -706,7 +744,6 @@ class GameBoard extends Phaser.GameObjects.Container {
             }
         }
 
-        //Check for vertical matches
         for (let j = 0; j < tileGrid.length; j++) {
             const tempArr = tileGrid[j]
             groups = []
@@ -762,12 +799,11 @@ class GameBoard extends Phaser.GameObjects.Container {
             this.secondSelectedTile = undefined
             this.resetTimeHintAndIdle()
 
-            // Call the callback if provided
             if (callback) {
                 callback()
             }
 
-            resolve() // Resolve the Promise after all destruction is done
+            resolve()
         })
     }
 }

@@ -6,7 +6,7 @@ const CONST = {
     tileWidth: 64,
     tileHeight: 64,
     candyTypes: ['jellyYellow', 'jellyBlack', 'jellyPink', 'jellyBlue', 'jellyRed', 'jellyGreen'],
-    fallSpeed: 0.3,
+    fallSpeed: 0.2,
     swapSpeed: 200,
     delayShowHint: 9000,
     delayShowIdle: 6000,

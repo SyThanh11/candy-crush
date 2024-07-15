@@ -82,7 +82,6 @@ class MatchManager {
         if (this.isMatch(row, col, tile)) {
             positions.push({ y: row, x: col })
             tile.setIsVisited(true)
-            // Check upwards
             let i = 1
             while (this.isMatch(row - i, col, tile)) {
                 positions.push({ y: row - i, x: col })
@@ -90,7 +89,6 @@ class MatchManager {
                 i++
             }
 
-            // Check downwards
             i = 1
             while (this.isMatch(row + i, col, tile)) {
                 positions.push({ y: row + i, x: col })
@@ -121,8 +119,6 @@ class MatchManager {
         if (this.isMatch(row, col, tile)) {
             positions.push({ y: row, x: col })
             tile.setIsVisited(true)
-
-            // Check leftwards
             let i = 1
             while (this.isMatch(row, col - i, tile)) {
                 positions.push({ y: row, x: col - i })

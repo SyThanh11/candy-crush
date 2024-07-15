@@ -1,4 +1,5 @@
 import CONST from '../const/const'
+import ConfettiManager from '../helper/ConfettiManager'
 import Background from '../layout/Background'
 import GameBoard from '../layout/GameBoard'
 import MainUI from '../layout/MainUI'
@@ -14,7 +15,8 @@ export class GameScene extends Phaser.Scene {
     private overlay: Overlay
     private isPlaying = true
 
-    private particleEmitter: Phaser.GameObjects.Particles.ParticleEmitter | null = null
+    private confettiParticleLeftManager: ConfettiManager
+    private confettiParticleRightManager: ConfettiManager
 
     constructor() {
         super({
@@ -37,26 +39,11 @@ export class GameScene extends Phaser.Scene {
         this.gameBoard.init()
         this.gameBoard.setScale(CONST.scale)
 
-        this.mainUI = new MainUI(this, 0, 0, 1000)
+        this.mainUI = new MainUI(this, 0, 0, ScoreManager.getInstance().getTargetScore())
         this.mainUI.setProgressBarValue(ScoreManager.getInstance().getProgressRatio())
 
-        // const emitter = this.add.particles(100, 300, 'leaf', {
-        //     lifespan: 2000,
-        //     angle: {
-        //         min: -90,
-        //         max: -30,
-        //     },
-        //     gravityY: 100,
-        //     speed: 200,
-        //     scale: 0.2,
-        //     particleClass
-        // })
-
-        // emitter.update((particle: Phaser.GameObjects.Particles.Particle) => {
-        //     particle.x = 0
-        // })
-
-        // emitter.explode(1)
+        this.confettiParticleLeftManager = new ConfettiManager(this, 260, 320)
+        this.confettiParticleRightManager = new ConfettiManager(this, 210, 270)
     }
 
     public addScoreAndUpdateMainUI(score: number) {
@@ -86,6 +73,8 @@ export class GameScene extends Phaser.Scene {
 
             this.isPlaying = false
             this.gameBoard.setIsPlaying(false)
+            this.confettiParticleLeftManager.burst(60, 350)
+            this.confettiParticleRightManager.burst(480, 350)
 
             resolve()
         }).then(() => {
@@ -98,7 +87,7 @@ export class GameScene extends Phaser.Scene {
                 ScoreManager.getInstance().setTargetScore(targetScore)
                 this.mainUI.setTargetScore(targetScore)
                 this.isPlaying = true
-            }, 5000)
+            }, 2000)
         })
     }
 }

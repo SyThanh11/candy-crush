@@ -85,6 +85,11 @@
         "type":"image",
         "key": "boom",
         "url": "./assets/images/19.png"
+      },
+      {
+        "type": "image",
+        "key": "star",
+        "url": "./assets/images/star4.png"
       }
     ]
   }
