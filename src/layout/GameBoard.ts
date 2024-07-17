@@ -427,19 +427,6 @@ class GameBoard extends Phaser.GameObjects.Container {
         const newX = centerX - (CONST.tileWidth * 0.2) / 2
         const newY = centerY - (CONST.tileHeight * 0.2) / 2
 
-        TweenHelper.clickToScale(
-            this.scene,
-            tile,
-            newX,
-            newY,
-            1.2,
-            1.2,
-            0,
-            'Linear',
-            true,
-            callBack
-        )
-
         this.currentSelectionImage = this.scene.add
             .image(tile.x, tile.y, 'selection-frame')
             .setOrigin(0)
