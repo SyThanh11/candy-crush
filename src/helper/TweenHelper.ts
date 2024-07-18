@@ -82,7 +82,8 @@ class TweenHelper {
         duration = 500,
         easing: string,
         yoyo = false,
-        callBack?: Function | undefined
+        callBack?: Function | undefined,
+        callBackUpdate?: Function | undefined
     ) {
         return scene.tweens.add({
             targets: target,
@@ -95,6 +96,9 @@ class TweenHelper {
             yoyo: yoyo,
             onComplete: () => {
                 if (callBack) callBack()
+            },
+            onUpdate: () => {
+                if (callBackUpdate) callBackUpdate()
             },
         })
     }
@@ -114,6 +118,40 @@ class TweenHelper {
             targets: target,
             radius: radius,
             ease: easing,
+            duration: duration,
+            yoyo: yoyo,
+            repeat: repeat,
+            onUpdate: () => {
+                if (callBack) {
+                    callBack()
+                }
+            },
+            onComplete: () => {
+                if (callBackComplete) {
+                    callBackComplete()
+                }
+            },
+        })
+    }
+
+    static shuffleEllipse(
+        scene: Phaser.Scene,
+        ellipse: Phaser.Geom.Ellipse,
+        targetWidth: number,
+        targetHeight: number,
+        easing: string,
+        duration: number,
+        yoyo: boolean,
+        repeat: number,
+        callBack?: Function | undefined,
+        callBackComplete?: Function | undefined
+    ) {
+        return scene.tweens.add({
+            targets: ellipse,
+            props: {
+                width: { value: targetWidth, ease: easing },
+                height: { value: targetHeight, ease: easing },
+            },
             duration: duration,
             yoyo: yoyo,
             repeat: repeat,

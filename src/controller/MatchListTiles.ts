@@ -27,10 +27,8 @@ class MatchListTiles {
             const tile = this.matchTiles[i]
             if (tile.getMatchCount() == 4) {
                 this.handleBoomMatchFour(tile, tileGrid)
-                return
             } else if (tile.getMatchCount() >= 5) {
-                this.handleBoomMatchFive(tileGrid)
-                return
+                this.handleBoomMatchFive(tileGrid, tile)
             } else {
                 tileGrid[tile.getBoardY()][tile.getBoardX()] = undefined
                 tile.destroyTile()
@@ -66,12 +64,12 @@ class MatchListTiles {
     ): void {
         const tile =
             centerTile == undefined ? this.findCenter(tileGrid, this.matchTiles) : centerTile
-        const left = tile.getBoardX() - 2 >= 0 ? tile.getBoardX() - 2 : 0
+        const left = tile.getBoardX() - 1 >= 0 ? tile.getBoardX() - 1 : 0
         const right =
-            tile.getBoardX() + 2 < CONST.gridWidth ? tile.getBoardX() + 2 : CONST.gridWidth - 1
-        const up = tile.getBoardY() - 2 >= 0 ? tile.getBoardY() - 2 : 0
+            tile.getBoardX() + 1 < CONST.gridWidth ? tile.getBoardX() + 1 : CONST.gridWidth - 1
+        const up = tile.getBoardY() - 1 >= 0 ? tile.getBoardY() - 1 : 0
         const down =
-            tile.getBoardY() + 2 < CONST.gridHeight ? tile.getBoardY() + 2 : CONST.gridHeight - 1
+            tile.getBoardY() + 1 < CONST.gridHeight ? tile.getBoardY() + 1 : CONST.gridHeight - 1
 
         for (let i = up; i <= down; i++) {
             for (let j = left; j <= right; j++) {
@@ -171,7 +169,14 @@ class MatchListTiles {
         })
 
         if (centerTile.isColorBoom()) {
-            centerTile.setTexture('boom')
+            if (
+                centerTile.getTypeOfMatch() === 'LShape' ||
+                centerTile.getTypeOfMatch() === 'CrossShape'
+            ) {
+                centerTile.setColorOfGlow(0xff0000)
+            } else {
+                centerTile.setTexture('boom')
+            }
         }
 
         ScoreManager.getInstance().incrementScore((tempTileList.length + 1) * CONST.addScore)

@@ -90,6 +90,11 @@
         "type": "image",
         "key": "star",
         "url": "./assets/images/star4.png"
+      },
+      {
+        "type": "image",
+        "key": "candyBoom",
+        "url": "./assets/images/candyBoom.png"
       }
     ]
   }

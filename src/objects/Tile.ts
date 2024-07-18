@@ -8,6 +8,7 @@ class Tile extends Phaser.GameObjects.Image {
     private glow: Phaser.FX.Glow | undefined
     private isHorizontal = true
     private isVisited: boolean
+    private typeOfMatch: string
 
     constructor(params: ImageConstructor) {
         super(params.scene, params.x, params.y, params.texture, params.frame)
@@ -20,6 +21,14 @@ class Tile extends Phaser.GameObjects.Image {
         this.initGlow()
 
         params.scene.add.existing(this)
+    }
+
+    public setTypeOfMatch(type: string) {
+        this.typeOfMatch = type
+    }
+
+    public getTypeOfMatch(): string {
+        return this.typeOfMatch
     }
 
     public setIsHorizontal(state: boolean): void {
@@ -50,6 +59,12 @@ class Tile extends Phaser.GameObjects.Image {
 
     public getTypeTile(): string {
         return this.texture.key
+    }
+
+    public setColorOfGlow(value: number) {
+        if (this.glow) {
+            this.glow.color = value
+        }
     }
 
     public moveToTarget(

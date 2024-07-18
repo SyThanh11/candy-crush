@@ -21,7 +21,6 @@ class GameBoard extends Phaser.GameObjects.Container {
 
     private isPlaying = true
     private isResetIdle = false
-    private isFirst = true
     private originalPositions: { tile: Tile; x: number; y: number }[] = []
     private idleTweens: Phaser.Tweens.Tween[] = []
 
@@ -39,7 +38,6 @@ class GameBoard extends Phaser.GameObjects.Container {
     init(): void {
         this.canMove = false
         this.isPlaying = true
-        this.isFirst = true
 
         this.tileGrid = []
 
@@ -320,9 +318,16 @@ class GameBoard extends Phaser.GameObjects.Container {
                 if (this.firstSelectedTile == undefined) {
                     this.firstSelectedTile = pickeTile
                     this.canMove = false
-                    this.clickEffect(this.firstSelectedTile, () => {
-                        this.canMove = true
-                    })
+                    this.clickEffect(
+                        this.firstSelectedTile,
+                        () => {
+                            this.canMove = true
+                            this.canDrag = true
+                        },
+                        () => {
+                            this.canDrag = false
+                        }
+                    )
                 } else {
                     this.secondSelectedTile = pickeTile
 
@@ -346,9 +351,16 @@ class GameBoard extends Phaser.GameObjects.Container {
                             this.tileUp()
                             this.firstSelectedTile = pickeTile
                             this.canMove = false
-                            this.clickEffect(this.firstSelectedTile, () => {
-                                this.canMove = true
-                            })
+                            this.clickEffect(
+                                this.firstSelectedTile,
+                                () => {
+                                    this.canMove = true
+                                    this.canDrag = true
+                                },
+                                () => {
+                                    this.canDrag = false
+                                }
+                            )
                         }
                     }
                 }
@@ -422,7 +434,11 @@ class GameBoard extends Phaser.GameObjects.Container {
         return Math.floor(tile.x / CONST.tileWidth)
     }
 
-    private clickEffect(tile: Tile, callBack?: Function | undefined): void {
+    private clickEffect(
+        tile: Tile,
+        callBack?: Function | undefined,
+        callBackUpdate?: Function | undefined
+    ): void {
         const centerX = tile.x
         const centerY = tile.y
         const newX = centerX - (CONST.tileWidth * 0.2) / 2
@@ -438,7 +454,8 @@ class GameBoard extends Phaser.GameObjects.Container {
             200,
             'Linear',
             true,
-            callBack
+            callBack,
+            callBackUpdate
         )
 
         this.currentSelectionImage = this.scene.add
@@ -518,9 +535,23 @@ class GameBoard extends Phaser.GameObjects.Container {
                 'Linear',
                 () => {
                     if (this.firstSelectedTile?.isColorBoom()) {
-                        this.explodeSameTile(this.firstSelectedTile, this.secondSelectedTile!)
+                        if (
+                            this.firstSelectedTile?.getTypeOfMatch() === 'LShape' ||
+                            this.firstSelectedTile?.getTypeOfMatch() === 'CrossShape'
+                        ) {
+                            this.checkMatches()
+                        } else {
+                            this.explodeSameTile(this.firstSelectedTile, this.secondSelectedTile!)
+                        }
                     } else if (this.secondSelectedTile?.isColorBoom()) {
-                        this.explodeSameTile(this.secondSelectedTile, this.firstSelectedTile!)
+                        if (
+                            this.secondSelectedTile?.getTypeOfMatch() === 'LShape' ||
+                            this.secondSelectedTile?.getTypeOfMatch() === 'CrossShape'
+                        ) {
+                            this.checkMatches()
+                        } else {
+                            this.explodeSameTile(this.secondSelectedTile, this.firstSelectedTile!)
+                        }
                     } else {
                         this.checkMatches()
                     }
