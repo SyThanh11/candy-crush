@@ -54,7 +54,8 @@ class TweenHelper {
         y: number,
         duration = 500,
         easing: string,
-        callBack?: Function | undefined
+        callBack?: Function | undefined,
+        callBackUpdate?: Function | undefined
     ) {
         return scene.tweens.add({
             targets: target,
@@ -64,6 +65,9 @@ class TweenHelper {
             ease: easing,
             onComplete: () => {
                 if (callBack) callBack()
+            },
+            onUpdate: () => {
+                if (callBackUpdate) callBackUpdate()
             },
         })
     }

@@ -64,8 +64,6 @@ class MatchListTiles {
         tileGrid: (Tile | undefined)[][],
         centerTile: Tile | undefined = undefined
     ): void {
-        console.log('Check 2')
-
         const tile =
             centerTile == undefined ? this.findCenter(tileGrid, this.matchTiles) : centerTile
         const left = tile.getBoardX() - 2 >= 0 ? tile.getBoardX() - 2 : 0

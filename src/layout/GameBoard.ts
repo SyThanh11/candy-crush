@@ -21,6 +21,7 @@ class GameBoard extends Phaser.GameObjects.Container {
 
     private isPlaying = true
     private isResetIdle = false
+    private isFirst = true
     private originalPositions: { tile: Tile; x: number; y: number }[] = []
     private idleTweens: Phaser.Tweens.Tween[] = []
 
@@ -36,8 +37,9 @@ class GameBoard extends Phaser.GameObjects.Container {
     }
 
     init(): void {
-        this.canMove = true
+        this.canMove = false
         this.isPlaying = true
+        this.isFirst = true
 
         this.tileGrid = []
 
@@ -79,7 +81,6 @@ class GameBoard extends Phaser.GameObjects.Container {
                             if (count == 0) {
                                 this.resetTimeHintAndIdle()
                                 this.checkMatches()
-                                this.canMove = true
                             }
                         }
                     )
@@ -427,6 +428,19 @@ class GameBoard extends Phaser.GameObjects.Container {
         const newX = centerX - (CONST.tileWidth * 0.2) / 2
         const newY = centerY - (CONST.tileHeight * 0.2) / 2
 
+        TweenHelper.clickToScale(
+            this.scene,
+            tile,
+            newX,
+            newY,
+            1.2,
+            1.2,
+            200,
+            'Linear',
+            true,
+            callBack
+        )
+
         this.currentSelectionImage = this.scene.add
             .image(tile.x, tile.y, 'selection-frame')
             .setOrigin(0)
@@ -464,7 +478,7 @@ class GameBoard extends Phaser.GameObjects.Container {
         return tile
     }
 
-    private swapTiles(): void {
+    private async swapTiles(): Promise<void> {
         if (this.firstSelectedTile && this.secondSelectedTile) {
             this.scene.tweens.killTweensOf(this.firstSelectedTile)
             this.scene.tweens.killTweensOf(this.secondSelectedTile)
@@ -510,6 +524,9 @@ class GameBoard extends Phaser.GameObjects.Container {
                     } else {
                         this.checkMatches()
                     }
+                },
+                () => {
+                    this.canMove = false
                 }
             )
 
@@ -573,10 +590,11 @@ class GameBoard extends Phaser.GameObjects.Container {
         const matches = this.getMatches(this.tileGrid)
 
         if (matches.length > 0) {
-            this.removeTileGroup(matches)
+            await this.removeTileGroup(matches)
+            this.canMove = true
         } else {
-            this.swapTiles()
-            this.tileUp()
+            await this.swapTiles()
+            await this.tileUp()
             this.canMove = true
         }
     }
@@ -684,6 +702,7 @@ class GameBoard extends Phaser.GameObjects.Container {
                 this.secondSelectedTile?.getBoardY()!,
                 async () => {
                     if (this.isPlaying) {
+                        this.canMove = false
                         await this.resetTile()
                         await this.tileUp()
                         await this.checkMatches()
