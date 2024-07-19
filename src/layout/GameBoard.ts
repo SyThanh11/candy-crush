@@ -356,7 +356,6 @@ class GameBoard extends Phaser.GameObjects.Container {
 
     private startSwipe(pointer: Phaser.Input.Pointer) {
         // debugger
-        console.log(this.canDrag)
 
         if (this.canDrag && this.firstSelectedTile != undefined) {
             this.resetTimeHintAndIdle()
