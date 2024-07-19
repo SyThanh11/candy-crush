@@ -57,9 +57,9 @@ class MatchListTiles {
                 const tempTile = tileGrid[row][col]
                 if (tempTile && tempTile !== tile) {
                     tileGrid[row][col] = undefined
-                    const promise = this.animateTileExplosion(tempTile)
+                    const delayMs = 50 * col
+                    const promise = this.animateTileExplosion(tempTile, delayMs)
                     promises.push(promise)
-                    // await this.delay(100)
                 }
 
                 ScoreManager.getInstance().eventEmitter.emit('addScore', CONST.addScore)
@@ -71,9 +71,9 @@ class MatchListTiles {
                 const tempTile = tileGrid[row][col]
                 if (tempTile && tempTile !== tile) {
                     tileGrid[row][col] = undefined
-                    const promise = this.animateTileExplosion(tempTile)
+                    const delayMs = 50 * row
+                    const promise = this.animateTileExplosion(tempTile, delayMs)
                     promises.push(promise)
-                    // await this.delay(100)
                 }
                 ScoreManager.getInstance().eventEmitter.emit('addScore', CONST.addScore)
             }
@@ -81,13 +81,61 @@ class MatchListTiles {
 
         // Set the tile to undefined in tileGrid and destroy it last
         tileGrid[tile.getBoardY()][tile.getBoardX()] = undefined
-        await this.animateTileExplosion(tile)
+        await this.animateTileExplosion(tile, 0)
 
         // Wait for all animations to complete
         await Promise.all(promises)
     }
 
-    private animateTileExplosion(tile: Tile): Promise<void> {
+    private animateTileExplosion(tile: Tile, delayMs: number): Promise<void> {
+        return new Promise<void>((resolve) => {
+            setTimeout(() => {
+                tile.destroyTile(() => {
+                    tile.scene.tweens.add({
+                        targets: tile,
+                        scaleX: 0,
+                        scaleY: 0,
+                        duration: 200,
+                        ease: 'Linear',
+                        onComplete: () => {
+                            resolve()
+                        },
+                    })
+                })
+            }, delayMs)
+        })
+    }
+
+    public async handleBoomMatchFive(
+        tileGrid: (Tile | undefined)[][],
+        centerTile: Tile | undefined = undefined
+    ): Promise<void> {
+        const promises: Promise<void>[] = []
+
+        const tile = centerTile ?? this.findCenter(tileGrid, this.matchTiles)
+        const startX = Math.max(tile.getBoardX() - 1, 0)
+        const endX = Math.min(tile.getBoardX() + 1, CONST.gridWidth - 1)
+        const startY = Math.max(tile.getBoardY() - 1, 0)
+        const endY = Math.min(tile.getBoardY() + 1, CONST.gridHeight - 1)
+
+        for (let row = startY; row <= endY; row++) {
+            for (let col = startX; col <= endX; col++) {
+                const tempTile = tileGrid[row][col]
+                if (tempTile && tempTile !== tile) {
+                    tileGrid[row][col] = undefined
+                    const promise = this.animateTileExplosionFive(tempTile)
+                    promises.push(promise)
+                }
+            }
+        }
+
+        tileGrid[tile.getBoardY()][tile.getBoardX()] = undefined
+        await this.animateTileExplosionFive(tile)
+
+        await Promise.all(promises)
+    }
+
+    private animateTileExplosionFive(tile: Tile): Promise<void> {
         return new Promise<void>((resolve) => {
             tile.destroyTile(() => {
                 tile.scene.tweens.add({
@@ -99,58 +147,8 @@ class MatchListTiles {
                     onComplete: () => {
                         resolve()
                     },
+                    delay: 50 * tile.getBoardX() + 50 * tile.getBoardY(), // Adjust delay based on tile position
                 })
-            })
-        })
-    }
-
-    private delay(ms: number): Promise<void> {
-        return new Promise<void>((resolve) => setTimeout(resolve, ms))
-    }
-
-    private handleBoomMatchFive(
-        tileGrid: (Tile | undefined)[][],
-        centerTile: Tile | undefined = undefined
-    ): Promise<void> {
-        return new Promise<void>((resolve) => {
-            const tile =
-                centerTile == undefined ? this.findCenter(tileGrid, this.matchTiles) : centerTile
-            const left = tile.getBoardX() - 1 >= 0 ? tile.getBoardX() - 1 : 0
-            const right =
-                tile.getBoardX() + 1 < CONST.gridWidth ? tile.getBoardX() + 1 : CONST.gridWidth - 1
-            const up = tile.getBoardY() - 1 >= 0 ? tile.getBoardY() - 1 : 0
-            const down =
-                tile.getBoardY() + 1 < CONST.gridHeight
-                    ? tile.getBoardY() + 1
-                    : CONST.gridHeight - 1
-
-            const promises: Promise<void>[] = []
-
-            for (let i = up; i <= down; i++) {
-                for (let j = left; j <= right; j++) {
-                    const tempTile = tileGrid[i][j]
-                    if (tempTile) {
-                        const destroyPromise = new Promise<void>((resolve) => {
-                            tempTile.destroyTile(() => {
-                                resolve()
-                            })
-                        })
-                        promises.push(destroyPromise)
-                        tileGrid[i][j] = undefined
-                    }
-                }
-            }
-
-            const centerDestroyPromise = new Promise<void>((resolve) => {
-                tileGrid[tile.getBoardY()][tile.getBoardX()] = undefined
-                tile.destroyTile(() => {
-                    resolve()
-                })
-            })
-            promises.push(centerDestroyPromise)
-
-            Promise.all(promises).then(() => {
-                resolve()
             })
         })
     }
