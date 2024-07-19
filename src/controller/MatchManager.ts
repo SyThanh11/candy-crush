@@ -389,13 +389,13 @@ class MatchManager {
             }
         }
     }
-    public matchAndRemoveTiles(
+    public async matchAndRemoveTiles(
         tileGrid: (Tile | undefined)[][],
         xMergeCoordinate: number,
         yMergeCoordinate: number,
         callback: Function | undefined = undefined,
         anotherCallback: Function | undefined = undefined
-    ): void {
+    ): Promise<void> {
         let count = 0
         if (this.matchManager.length == 0) {
             if (anotherCallback) {

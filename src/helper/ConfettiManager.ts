@@ -14,10 +14,10 @@ class ConfettiManager {
 
     private createEmitter(minAngle: number, maxAngle: number) {
         const config: Phaser.Types.GameObjects.Particles.ParticleEmitterConfig = {
-            lifespan: 3000,
+            lifespan: 4000,
             speed: { min: 200, max: 250 },
+            accelerationY: 100,
             angle: { min: minAngle, max: maxAngle },
-            gravityY: 400,
             quantity: 10,
             scaleX: { min: 0.5, max: 1 },
             scaleY: { min: 0.5, max: 1 },

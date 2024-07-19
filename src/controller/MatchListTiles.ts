@@ -22,67 +22,137 @@ class MatchListTiles {
         this.matchTiles.push(tile)
     }
 
-    public destroyAllTiles(tileGrid: (Tile | undefined)[][]): void {
+    public async destroyAllTiles(tileGrid: (Tile | undefined)[][]): Promise<void> {
+        const promises: Promise<void>[] = []
+
         for (let i = this.matchTiles.length - 1; i >= 0; i--) {
             const tile = this.matchTiles[i]
-            if (tile.getMatchCount() == 4) {
-                this.handleBoomMatchFour(tile, tileGrid)
+
+            if (tile.getMatchCount() === 4) {
+                promises.push(this.handleBoomMatchFour(tile, tileGrid))
             } else if (tile.getMatchCount() >= 5) {
-                this.handleBoomMatchFive(tileGrid, tile)
+                promises.push(this.handleBoomMatchFive(tileGrid, tile))
             } else {
                 tileGrid[tile.getBoardY()][tile.getBoardX()] = undefined
-                tile.destroyTile()
-                ScoreManager.getInstance().eventEmitter.emit('addScore', CONST.addScore)
+                const destroyPromise = new Promise<void>((resolve) => {
+                    tile.destroyTile(() => {
+                        ScoreManager.getInstance().eventEmitter.emit('addScore', CONST.addScore)
+                        resolve()
+                    })
+                })
+                promises.push(destroyPromise)
             }
         }
+
+        await Promise.all(promises)
     }
 
-    public handleBoomMatchFour(tile: Tile, tileGrid: (Tile | undefined)[][]): void {
+    public async handleBoomMatchFour(tile: Tile, tileGrid: (Tile | undefined)[][]): Promise<void> {
+        const promises: Promise<void>[] = []
+
         if (tile.getIsHorizontal()) {
+            // Handle horizontally
             for (let i = 0; i < CONST.gridWidth; i++) {
                 const tempTile = tileGrid[tile.getBoardY()][i]
-                tileGrid[tile.getBoardY()][i] = undefined
-                tempTile?.destroyTile()
+
+                if (tempTile && tempTile !== tile) {
+                    tileGrid[tile.getBoardY()][i] = undefined
+                    const promise = this.animateTileExplosion(tempTile)
+                    promises.push(promise)
+                }
+
                 ScoreManager.getInstance().eventEmitter.emit('addScore', CONST.addScore)
+                await this.delay(50)
             }
         } else {
+            // Handle vertically
             for (let i = 0; i < CONST.gridHeight; i++) {
                 const tempTile = tileGrid[i][tile.getBoardX()]
-                tileGrid[i][tile.getBoardX()] = undefined
-                tempTile?.destroyTile()
+
+                if (tempTile && tempTile !== tile) {
+                    tileGrid[i][tile.getBoardX()] = undefined
+                    const promise = this.animateTileExplosion(tempTile)
+                    promises.push(promise)
+                }
+
                 ScoreManager.getInstance().eventEmitter.emit('addScore', CONST.addScore)
+                await this.delay(50)
             }
+
+            console.log(tileGrid)
         }
 
-        tileGrid[tile.getBoardY()][tile.getBoardX()] = undefined
-        tile.destroyTile()
+        await this.animateTileExplosion(tile)
+
+        await Promise.all(promises)
+    }
+
+    private animateTileExplosion(tile: Tile): Promise<void> {
+        return new Promise<void>((resolve) => {
+            tile.destroyTile(() => {
+                tile.scene.tweens.add({
+                    targets: tile,
+                    scaleX: 0,
+                    scaleY: 0,
+                    duration: 200,
+                    ease: 'Linear',
+                    onComplete: () => {
+                        resolve()
+                    },
+                })
+            })
+        })
+    }
+
+    private delay(ms: number): Promise<void> {
+        return new Promise<void>((resolve) => setTimeout(resolve, ms))
     }
 
     private handleBoomMatchFive(
         tileGrid: (Tile | undefined)[][],
         centerTile: Tile | undefined = undefined
-    ): void {
-        const tile =
-            centerTile == undefined ? this.findCenter(tileGrid, this.matchTiles) : centerTile
-        const left = tile.getBoardX() - 1 >= 0 ? tile.getBoardX() - 1 : 0
-        const right =
-            tile.getBoardX() + 1 < CONST.gridWidth ? tile.getBoardX() + 1 : CONST.gridWidth - 1
-        const up = tile.getBoardY() - 1 >= 0 ? tile.getBoardY() - 1 : 0
-        const down =
-            tile.getBoardY() + 1 < CONST.gridHeight ? tile.getBoardY() + 1 : CONST.gridHeight - 1
+    ): Promise<void> {
+        return new Promise<void>((resolve) => {
+            const tile =
+                centerTile == undefined ? this.findCenter(tileGrid, this.matchTiles) : centerTile
+            const left = tile.getBoardX() - 1 >= 0 ? tile.getBoardX() - 1 : 0
+            const right =
+                tile.getBoardX() + 1 < CONST.gridWidth ? tile.getBoardX() + 1 : CONST.gridWidth - 1
+            const up = tile.getBoardY() - 1 >= 0 ? tile.getBoardY() - 1 : 0
+            const down =
+                tile.getBoardY() + 1 < CONST.gridHeight
+                    ? tile.getBoardY() + 1
+                    : CONST.gridHeight - 1
 
-        for (let i = up; i <= down; i++) {
-            for (let j = left; j <= right; j++) {
-                const tempTile = tileGrid[i][j]
-                if (!tempTile) {
-                    continue
+            const promises: Promise<void>[] = []
+
+            for (let i = up; i <= down; i++) {
+                for (let j = left; j <= right; j++) {
+                    const tempTile = tileGrid[i][j]
+                    if (tempTile) {
+                        const destroyPromise = new Promise<void>((resolve) => {
+                            tempTile.destroyTile(() => {
+                                resolve()
+                            })
+                        })
+                        promises.push(destroyPromise)
+                        tileGrid[i][j] = undefined
+                    }
                 }
-                tileGrid[i][j] = undefined
-                tempTile?.destroyTile()
             }
-        }
-        tileGrid[tile.getBoardY()][tile.getBoardX()] = undefined
-        tile.destroyTile()
+
+            const centerDestroyPromise = new Promise<void>((resolve) => {
+                tileGrid[tile.getBoardY()][tile.getBoardX()] = undefined
+                tile.destroyTile(() => {
+                    resolve()
+                })
+            })
+            promises.push(centerDestroyPromise)
+
+            Promise.all(promises).then(() => {
+                resolve()
+            })
+        })
     }
 
     public mergeTiles(

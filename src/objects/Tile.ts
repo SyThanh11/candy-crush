@@ -113,10 +113,13 @@ class Tile extends Phaser.GameObjects.Image {
         return emitter
     }
 
-    public destroyTile(): void {
-        this.initAnimationExpode().explode(16)
-        TweenHelper.fadeOutAndZoomIn(this.scene, this, 200, 'Linear', this, () => {
-            this.destroy()
+    public destroyTile(callback?: Function | undefined): Promise<void> {
+        return new Promise<void>((resolve) => {
+            this.initAnimationExpode().explode(16)
+            TweenHelper.fadeOutAndZoomIn(this.scene, this, 200, 'Linear', this, () => {
+                this.destroy()
+                resolve()
+            })
         })
     }
 
