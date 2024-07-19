@@ -118,38 +118,53 @@ class MatchListTiles {
         const startY = Math.max(tile.getBoardY() - 1, 0)
         const endY = Math.min(tile.getBoardY() + 1, CONST.gridHeight - 1)
 
+        // Animate all tiles around the center
         for (let row = startY; row <= endY; row++) {
             for (let col = startX; col <= endX; col++) {
                 const tempTile = tileGrid[row][col]
                 if (tempTile && tempTile !== tile) {
                     tileGrid[row][col] = undefined
-                    const promise = this.animateTileExplosionFive(tempTile)
+                    const delay = this.calculateDelay(tile, tempTile)
+                    const promise = this.animateTileExplosionFive(tempTile, delay)
                     promises.push(promise)
                 }
             }
         }
 
+        // Animate center tile
         tileGrid[tile.getBoardY()][tile.getBoardX()] = undefined
-        await this.animateTileExplosionFive(tile)
+        const centerDelay = 0 // No delay for the center tile
+        await this.animateTileExplosionFive(tile, centerDelay)
 
         await Promise.all(promises)
     }
 
-    private animateTileExplosionFive(tile: Tile): Promise<void> {
+    private calculateDelay(centerTile: Tile, tempTile: Tile): number {
+        const distance = Phaser.Math.Distance.Between(
+            centerTile.getBoardX(),
+            centerTile.getBoardY(),
+            tempTile.getBoardX(),
+            tempTile.getBoardY()
+        )
+        return distance * 50
+    }
+
+    private animateTileExplosionFive(tile: Tile, delay: number): Promise<void> {
         return new Promise<void>((resolve) => {
-            tile.destroyTile(() => {
-                tile.scene.tweens.add({
-                    targets: tile,
-                    scaleX: 0,
-                    scaleY: 0,
-                    duration: 200,
-                    ease: 'Linear',
-                    onComplete: () => {
-                        resolve()
-                    },
-                    delay: 50 * tile.getBoardX() + 50 * tile.getBoardY(), // Adjust delay based on tile position
+            setTimeout(() => {
+                tile.destroyTile(() => {
+                    tile.scene.tweens.add({
+                        targets: tile,
+                        scaleX: 0,
+                        scaleY: 0,
+                        duration: 200,
+                        ease: 'Linear',
+                        onComplete: () => {
+                            resolve()
+                        },
+                    })
                 })
-            })
+            }, delay)
         })
     }
 
