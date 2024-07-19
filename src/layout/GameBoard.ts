@@ -90,7 +90,7 @@ class GameBoard extends Phaser.GameObjects.Container {
         this.secondSelectedTile = undefined
 
         this.scene.input.on('gameobjectdown', this.tileSelect, this)
-        this.scene.input.on('pointermove', this.startSwipe, this)
+        this.scene.input.on('pointerover', this.startSwipe, this)
         this.scene.input.on('pointerup', this.stopSwipe, this)
     }
 
@@ -318,16 +318,9 @@ class GameBoard extends Phaser.GameObjects.Container {
                 if (this.firstSelectedTile == undefined) {
                     this.firstSelectedTile = pickeTile
                     this.canMove = false
-                    this.clickEffect(
-                        this.firstSelectedTile,
-                        () => {
-                            this.canMove = true
-                            this.canDrag = true
-                        },
-                        () => {
-                            this.canDrag = false
-                        }
-                    )
+                    this.clickEffect(this.firstSelectedTile, () => {
+                        this.canMove = true
+                    })
                 } else {
                     this.secondSelectedTile = pickeTile
 
@@ -351,16 +344,9 @@ class GameBoard extends Phaser.GameObjects.Container {
                             this.tileUp()
                             this.firstSelectedTile = pickeTile
                             this.canMove = false
-                            this.clickEffect(
-                                this.firstSelectedTile,
-                                () => {
-                                    this.canMove = true
-                                    this.canDrag = true
-                                },
-                                () => {
-                                    this.canDrag = false
-                                }
-                            )
+                            this.clickEffect(this.firstSelectedTile, () => {
+                                this.canMove = true
+                            })
                         }
                     }
                 }
@@ -369,6 +355,9 @@ class GameBoard extends Phaser.GameObjects.Container {
     }
 
     private startSwipe(pointer: Phaser.Input.Pointer) {
+        // debugger
+        console.log(this.canDrag)
+
         if (this.canDrag && this.firstSelectedTile != undefined) {
             this.resetTimeHintAndIdle()
             const deltaX = pointer.downX - pointer.x
@@ -447,11 +436,11 @@ class GameBoard extends Phaser.GameObjects.Container {
         TweenHelper.clickToScale(
             this.scene,
             tile,
-            newX,
-            newY,
-            1.2,
-            1.2,
-            200,
+            centerX,
+            centerY,
+            1,
+            1,
+            0,
             'Linear',
             true,
             callBack,
