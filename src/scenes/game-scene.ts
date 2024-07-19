@@ -42,9 +42,6 @@ export class GameScene extends Phaser.Scene {
         this.mainUI = new MainUI(this, 0, 0, ScoreManager.getInstance().getTargetScore())
         this.mainUI.setProgressBarValue(ScoreManager.getInstance().getProgressRatio())
 
-        this.confettiParticleLeftManager = new ConfettiManager(this, 260, 320)
-        this.confettiParticleRightManager = new ConfettiManager(this, 210, 270)
-
         // this.confettiParticleLeftManager.burst(60, 300)
         // this.confettiParticleRightManager.burst(480, 300)
     }
@@ -76,6 +73,10 @@ export class GameScene extends Phaser.Scene {
 
             this.isPlaying = false
             this.gameBoard.setIsPlaying(false)
+
+            this.confettiParticleLeftManager = new ConfettiManager(this, 260, 320)
+            this.confettiParticleRightManager = new ConfettiManager(this, 210, 270)
+
             this.confettiParticleLeftManager.burst(60, 300)
             this.confettiParticleRightManager.burst(480, 300)
 
@@ -90,7 +91,7 @@ export class GameScene extends Phaser.Scene {
                 ScoreManager.getInstance().setTargetScore(targetScore)
                 this.mainUI.setTargetScore(targetScore)
                 this.isPlaying = true
-            }, 2000)
+            }, 4000)
         })
     }
 }

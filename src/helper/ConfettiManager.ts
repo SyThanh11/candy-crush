@@ -9,12 +9,12 @@ class ConfettiManager {
     constructor(scene: Phaser.Scene, minAngle: number, maxAngle: number) {
         this.scene = scene
         this.createEmitter(minAngle, maxAngle)
-        this.rainbowColors = [0xff0000, 0x00ff00, 0x0000ff]
+        this.rainbowColors = [0xff0000, 0x00ff00, 0x0000ff, 0xff69b4, 0xffff00, 0x696969]
     }
 
     private createEmitter(minAngle: number, maxAngle: number) {
         const config: Phaser.Types.GameObjects.Particles.ParticleEmitterConfig = {
-            lifespan: 4000,
+            lifespan: 3000,
             speed: { min: 200, max: 250 },
             accelerationY: 100,
             angle: { min: minAngle, max: maxAngle },
