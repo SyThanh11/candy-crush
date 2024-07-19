@@ -45,8 +45,8 @@ export class GameScene extends Phaser.Scene {
         this.confettiParticleLeftManager = new ConfettiManager(this, 260, 320)
         this.confettiParticleRightManager = new ConfettiManager(this, 210, 270)
 
-        this.confettiParticleLeftManager.burst(60, 300)
-        this.confettiParticleRightManager.burst(480, 300)
+        // this.confettiParticleLeftManager.burst(60, 300)
+        // this.confettiParticleRightManager.burst(480, 300)
     }
 
     public addScoreAndUpdateMainUI(score: number) {

@@ -1,6 +1,7 @@
 import CONST from '../const/const'
 import TweenHelper from '../helper/TweenHelper'
 import { ImageConstructor } from '../interfaces/image.interface'
+import ScoreManager from './ScoreManager'
 
 class Tile extends Phaser.GameObjects.Image {
     private speed: number
@@ -117,6 +118,7 @@ class Tile extends Phaser.GameObjects.Image {
         return new Promise<void>((resolve) => {
             this.initAnimationExpode().explode(16)
             TweenHelper.fadeOutAndZoomIn(this.scene, this, 200, 'Linear', this, () => {
+                ScoreManager.getInstance().eventEmitter.emit('addScore', CONST.addScore)
                 this.destroy()
                 resolve()
             })

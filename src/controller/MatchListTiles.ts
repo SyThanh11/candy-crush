@@ -34,11 +34,8 @@ class MatchListTiles {
                 promises.push(this.handleBoomMatchFive(tileGrid, tile))
             } else {
                 tileGrid[tile.getBoardY()][tile.getBoardX()] = undefined
-                const destroyPromise = new Promise<void>((resolve) => {
-                    tile.destroyTile(() => {
-                        ScoreManager.getInstance().eventEmitter.emit('addScore', CONST.addScore)
-                        resolve()
-                    })
+                const destroyPromise = new Promise<void>(() => {
+                    tile.destroyTile()
                 })
                 promises.push(destroyPromise)
             }
