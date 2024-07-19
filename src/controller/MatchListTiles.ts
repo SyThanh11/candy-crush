@@ -52,38 +52,38 @@ class MatchListTiles {
 
         if (tile.getIsHorizontal()) {
             // Handle horizontally
-            for (let i = 0; i < CONST.gridWidth; i++) {
-                const tempTile = tileGrid[tile.getBoardY()][i]
-
+            const row = tile.getBoardY()
+            for (let col = 0; col < CONST.gridWidth; col++) {
+                const tempTile = tileGrid[row][col]
                 if (tempTile && tempTile !== tile) {
-                    tileGrid[tile.getBoardY()][i] = undefined
+                    tileGrid[row][col] = undefined
                     const promise = this.animateTileExplosion(tempTile)
                     promises.push(promise)
+                    // await this.delay(100)
                 }
 
                 ScoreManager.getInstance().eventEmitter.emit('addScore', CONST.addScore)
-                await this.delay(50)
             }
         } else {
             // Handle vertically
-            for (let i = 0; i < CONST.gridHeight; i++) {
-                const tempTile = tileGrid[i][tile.getBoardX()]
-
+            const col = tile.getBoardX()
+            for (let row = 0; row < CONST.gridHeight; row++) {
+                const tempTile = tileGrid[row][col]
                 if (tempTile && tempTile !== tile) {
-                    tileGrid[i][tile.getBoardX()] = undefined
+                    tileGrid[row][col] = undefined
                     const promise = this.animateTileExplosion(tempTile)
                     promises.push(promise)
+                    // await this.delay(100)
                 }
-
                 ScoreManager.getInstance().eventEmitter.emit('addScore', CONST.addScore)
-                await this.delay(50)
             }
-
-            console.log(tileGrid)
         }
 
+        // Set the tile to undefined in tileGrid and destroy it last
+        tileGrid[tile.getBoardY()][tile.getBoardX()] = undefined
         await this.animateTileExplosion(tile)
 
+        // Wait for all animations to complete
         await Promise.all(promises)
     }
 
