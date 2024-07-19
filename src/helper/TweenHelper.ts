@@ -52,7 +52,7 @@ class TweenHelper {
         target: Phaser.GameObjects.GameObject | undefined,
         x: number,
         y: number,
-        duration = 500,
+        duration = 200,
         easing: string,
         callBack?: Function | undefined,
         callBackUpdate?: Function | undefined

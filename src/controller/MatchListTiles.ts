@@ -93,7 +93,7 @@ class MatchListTiles {
                         scaleX: 0,
                         scaleY: 0,
                         duration: 200,
-                        ease: 'Linear',
+                        ease: 'Sine.easeInOut',
                         onComplete: () => {
                             resolve()
                         },
@@ -155,7 +155,7 @@ class MatchListTiles {
                         scaleX: 0,
                         scaleY: 0,
                         duration: 200,
-                        ease: 'Linear',
+                        ease: 'Sine.easeInOut',
                         onComplete: () => {
                             resolve()
                         },

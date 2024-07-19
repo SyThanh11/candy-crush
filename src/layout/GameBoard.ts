@@ -73,7 +73,7 @@ class GameBoard extends Phaser.GameObjects.Container {
                         x * CONST.tileWidth,
                         y * CONST.tileHeight,
                         duration,
-                        'Linear',
+                        'Sine.easeInOut',
                         () => {
                             count--
                             if (count == 0) {
@@ -149,7 +149,7 @@ class GameBoard extends Phaser.GameObjects.Container {
                         alpha: 0.5,
                         y: tile.y + 10,
                         duration: 200,
-                        ease: 'Linear',
+                        ease: 'Quart.easeIn',
                         yoyo: true,
                         delay: index * 20,
                     })
@@ -170,7 +170,7 @@ class GameBoard extends Phaser.GameObjects.Container {
                 x: x,
                 y: y,
                 duration: 0,
-                ease: 'Linear',
+                ease: 'Quad.easeIn',
             })
         })
     }
@@ -253,7 +253,7 @@ class GameBoard extends Phaser.GameObjects.Container {
                 scaleX: 1.2,
                 scaleY: 1.2,
                 duration: 200,
-                ease: 'Linear',
+                ease: 'Sine.easeOut',
                 yoyo: true,
                 repeat: -1,
             })
@@ -459,7 +459,7 @@ class GameBoard extends Phaser.GameObjects.Container {
             scaleX: 1.2,
             scaleY: 1.2,
             duration: 200,
-            ease: 'Linear',
+            ease: 'Sine.easeOut',
             yoyo: true,
             repeat: -1,
         })
@@ -511,7 +511,7 @@ class GameBoard extends Phaser.GameObjects.Container {
                 this.secondSelectedTile.x,
                 this.secondSelectedTile.y,
                 CONST.swapSpeed,
-                'Linear'
+                'Sine.easeInOut'
             )
 
             TweenHelper.moveTo(
@@ -520,7 +520,7 @@ class GameBoard extends Phaser.GameObjects.Container {
                 this.firstSelectedTile.x,
                 this.firstSelectedTile.y,
                 CONST.swapSpeed,
-                'Linear',
+                'Sine.easeInOut',
                 () => {
                     if (this.firstSelectedTile?.isColorBoom()) {
                         if (
@@ -561,6 +561,8 @@ class GameBoard extends Phaser.GameObjects.Container {
     }
 
     private async explodeSameTile(tileOne: Tile, tileTwo: Tile): Promise<void> {
+        const camera = this.scene.cameras.main
+        camera.shake(200, 0.02)
         for (let y = 0; y < this.tileGrid.length; y++) {
             for (let x = 0; x < this.tileGrid[y].length; x++) {
                 if (this.tileGrid[y][x]?.hasSameTypeTile(tileTwo)) {

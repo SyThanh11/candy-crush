@@ -72,7 +72,7 @@ class Tile extends Phaser.GameObjects.Image {
         xCoordinate: number,
         yCoordinate: number,
         callback: Function | undefined = undefined,
-        ease = 'Linear'
+        ease = 'Sine.easeOut'
     ): Phaser.Tweens.Tween | undefined {
         if (!this.scene) return undefined
         let duration = Math.abs(yCoordinate * CONST.tileHeight - this.y) / this.speed
@@ -99,14 +99,13 @@ class Tile extends Phaser.GameObjects.Image {
         const emitter = this.scene.add.particles(
             this.x * 0.6 + CONST.tileWidth / 2 + 85,
             this.y * 0.6 + CONST.tileHeight / 2 + 140,
-            'flares',
+            this.texture,
             {
-                frame: ['red', 'yellow', 'green'],
-                lifespan: 600,
+                lifespan: 800,
                 speed: { min: 50, max: 60 },
-                scale: { start: 0.3 * CONST.scale, end: 0 },
+                scale: { start: 0.7 * CONST.scale, end: 0 },
                 gravityY: 30,
-                blendMode: 'ADD',
+                // blendMode: 'ADD',
                 emitting: false,
             }
         )
@@ -116,8 +115,8 @@ class Tile extends Phaser.GameObjects.Image {
 
     public destroyTile(callback?: Function | undefined): Promise<void> {
         return new Promise<void>((resolve) => {
-            this.initAnimationExpode().explode(16)
-            TweenHelper.fadeOutAndZoomIn(this.scene, this, 200, 'Linear', this, () => {
+            this.initAnimationExpode().explode(3)
+            TweenHelper.fadeOutAndZoomIn(this.scene, this, 200, 'Bounce.easeInOut', this, () => {
                 ScoreManager.getInstance().eventEmitter.emit('addScore', CONST.addScore)
                 this.destroy()
                 resolve()
